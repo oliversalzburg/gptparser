@@ -17,6 +17,18 @@
     }
 
     /**
+    * Invoke an arbitrary amount of resulting output lines on the user supplied post processor.
+    */
+    protected function callPostProcessCallback() {
+      $params = func_get_args();
+      if( null == $params ) return;
+      $callback = array_shift( $params );
+      foreach( $params as $query ) {
+        call_user_func( $callback, $query );
+      }
+    }
+
+    /**
     * Works just like implode() but ignores null values in array.
     *
     * @param mixed $glue

@@ -62,12 +62,29 @@
     * @var string
     */
     private $result;
+
     /**
-    * The known authentication ports
+    * User-supplied callback function to execute for any resulting line.
     *
     * @var mixed
     */
-    private $ports;
+    public $PostProcessor;
+
+    /**
+    * The name of the parser class that represents root-level nodes.
+    *
+    * @var mixed
+    */
+    private $rootType;
+
+    /**
+    * The known, parsed root nodes.
+    * These are known, root-level elements that have been parsed and will
+    * be called to later generate the output.
+    *
+    * @var mixed
+    */
+    private $rootNodes;
 
     /**
     * Default constructor
@@ -79,10 +96,15 @@
     /**
     * Initialize the parser.
     *
+    * @param string $rootType The name of the parser class that represents a root-level node.
+    * @param array $parsers An associative array that mapes tokens to parser class names.
     */
-    public function init() {
-      // TODO: Register parsers
+    public function init( $rootType, $parsers ) {
+      foreach( $parsers as $token => $parser ) {
+        GPTParserLibrary::registerParser( $token, $parser );
+      }
 
+      $this->rootType = $rootType;
       $this->isInitialized = true;
     }
 
@@ -103,7 +125,7 @@
       $this->lastWhitespace = 0;
       $this->scopes = array();
 
-      $this->ports = array();
+      $this->rootNodes = array();
 
       // Iterate over all lines
       foreach( $lines as $lineNumber => $line ) {
@@ -113,11 +135,22 @@
       $result = "";
 
       // Render result
-      foreach( $this->ports as $port ) {
-        $result .= $port->render() . "\n";
+      foreach( $this->rootNodes as $rootNode ) {
+        $result .= $rootNode->render( $this->PostProcessor );
       }
 
       return $result;
+    }
+
+    /**
+    * Injects an arbitrary markup line into the parser at the current scope.
+    *
+    * @param int $asLineNumber Claim the inserted line originated from this line number.
+    * @param string $line The line to inject.
+    */
+    public function injectAtCurrentScope( $asLineNumber, $line ) {
+      $line = str_repeat( " ", $this->context->Scope->WhitespaceDepth ) . $line;
+      $this->internalParse( $asLineNumber, $line );
     }
 
     /**
@@ -143,16 +176,22 @@
         if( 0 == $lineLength ) return;
 
       } else {
+        // If we have a valid result from a previous pass,
+        // but no scoped is stored in the context, store
+        // that scope in the context
+        if( null == $this->context->Scope && null != $this->result ) {
+          $this->context->Scope = $this->result;
+        }
         // Adjust scope
         $whiteSpace = ( isset( $matches[ 0 ] ) ) ? $matches[ 0 ] : "";
-        if( strlen( $whiteSpace ) > $this->context->Scope->WhitespaceDepth ) {
+        if( null != $this->context->Scope && strlen( $whiteSpace ) > $this->context->Scope->WhitespaceDepth ) {
           $this->scopes[] = $this->result;
           $this->result->WhitespaceDepth = strlen( $whiteSpace );
           //$this->lastWhitespace = strlen( $whiteSpace );
           if( $this->isDebug ) call_user_func( $this->debugLog, "Adjusting scope downwards" );
 
         } //else if( strlen( $whiteSpace ) < $this->context->Scope->WhitespaceDepth ) {
-        while( strlen( $whiteSpace ) < $this->scopes[ count( $this->scopes ) - 1 ]->WhitespaceDepth ) {
+        while( count( $this->scopes ) > 0 && strlen( $whiteSpace ) < $this->scopes[ count( $this->scopes ) - 1 ]->WhitespaceDepth ) {
           array_pop( $this->scopes );
           //$this->lastWhitespace = strlen( $whiteSpace );
           if( $this->isDebug ) call_user_func( $this->debugLog, "Adjusting scope upwards" );
@@ -183,8 +222,8 @@
       if( $this->isDebug ) call_user_func( $this->debugLog, "Parser: " . $parser );
       $this->result = call_user_func( array( $parser, "parse" ), $tokens );
 
-      if( "PortToken" == get_class( $this->result ) ) {
-        $this->ports[] = $this->result;
+      if( $this->rootType == get_class( $this->result ) ) {
+        $this->rootNodes[] = $this->result;
       }
 
       return $this->result;

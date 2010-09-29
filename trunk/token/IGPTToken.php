@@ -5,6 +5,6 @@
     /**
     * Render the content of the token.
     */
-    function render();
+    function render( $callback );
   }
 ?>
