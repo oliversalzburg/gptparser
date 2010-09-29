@@ -177,7 +177,7 @@
 
       } else {
         // If we have a valid result from a previous pass,
-        // but no scoped is stored in the context, store
+        // but no scope is stored in the context, store
         // that scope in the context
         if( null == $this->context->Scope && null != $this->result ) {
           $this->context->Scope = $this->result;
@@ -187,16 +187,12 @@
         if( null != $this->context->Scope && strlen( $whiteSpace ) > $this->context->Scope->WhitespaceDepth ) {
           $this->scopes[] = $this->result;
           $this->result->WhitespaceDepth = strlen( $whiteSpace );
-          //$this->lastWhitespace = strlen( $whiteSpace );
           if( $this->isDebug ) call_user_func( $this->debugLog, "Adjusting scope downwards" );
-
-        } //else if( strlen( $whiteSpace ) < $this->context->Scope->WhitespaceDepth ) {
+        }
         while( count( $this->scopes ) > 0 && strlen( $whiteSpace ) < $this->scopes[ count( $this->scopes ) - 1 ]->WhitespaceDepth ) {
           array_pop( $this->scopes );
-          //$this->lastWhitespace = strlen( $whiteSpace );
           if( $this->isDebug ) call_user_func( $this->debugLog, "Adjusting scope upwards" );
         }
-        //}
       }
 
       // Set resulting scope in parser context.
