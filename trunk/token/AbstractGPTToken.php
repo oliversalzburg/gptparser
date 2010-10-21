@@ -6,7 +6,7 @@
 
     protected $scope;
 
-    protected function expectParameters() {
+    protected static function expectParameters() {
       $params = func_get_args();
       $supplied = $params[ 0 ];
       for( $paramIndex = 1; $paramIndex < count( $params ); ++$paramIndex ) {
