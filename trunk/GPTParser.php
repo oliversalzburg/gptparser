@@ -165,12 +165,12 @@
       if( $this->isDebug ) call_user_func( $this->debugLog, $line );
 
       // Skip comments
-      $isComment = preg_match( "~^\s*((//)|(#)|(;))~", $line, $matches );
+      $isComment = preg_match( "~^\\s*((//)|(#)|(;))~", $line, $matches );
       if( 1 == $isComment ) return;
 
       // Find indentation
       $lineLength = strlen( $line );
-      $found      = preg_match( "/^(\s)+/", $line, $matches );
+      $found      = preg_match( "/^(\\s)+/", $line, $matches );
       if( 0 == $lineLength ) {
         // Skip empty lines
         if( 0 == $lineLength ) return;
@@ -206,7 +206,7 @@
       if( $this->isDebug ) call_user_func( $this->debugLog, "Current scope type: " . get_class( $this->context->Scope ) );
 
       // Remove excessive whitespace
-      $line = preg_replace( "/\s+/", " ", trim( $line ) );
+      $line = preg_replace( "/\\s+/", " ", trim( $line ) );
 
       // Split into tokens
       $tokens = explode( " ", $line );
