@@ -29,6 +29,12 @@
     * @var mixed
     */
     public $debugLog;
+    /**
+    * An array of tolens that should be ignored while parsing
+    *
+    * @var array
+    */
+    public $excludeTokens;
 
     /**
     * The current scope of the parser.
@@ -211,6 +217,9 @@
       // Split into tokens
       $tokens = explode( " ", $line );
       $token  = $tokens[ 0 ];
+      if( in_array( $token, $this->excludeTokens ) ) {
+        return;
+      }
 
       if( $this->isDebug ) call_user_func( $this->debugLog, "Parsing line." );
       // Construct parser and parse tokens
