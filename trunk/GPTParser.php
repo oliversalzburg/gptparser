@@ -202,11 +202,13 @@
           $this->scopes[] = $this->result;
           $this->result->WhitespaceDepth = strlen( $whiteSpace );
           if( $this->isDebug ) call_user_func( $this->debugLog, "Adjusting scope downwards" );
+
+        } else {
+          // Stop ignoring
+          $this->ignoreScope = false;
         }
         while( count( $this->scopes ) > 0 && strlen( $whiteSpace ) < $this->scopes[ count( $this->scopes ) - 1 ]->WhitespaceDepth ) {
           array_pop( $this->scopes );
-          // Stop ignoring
-          $this->ignoreScope = false;
           if( $this->isDebug ) call_user_func( $this->debugLog, "Adjusting scope upwards" );
         }
       }
