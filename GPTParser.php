@@ -93,6 +93,13 @@
     private $rootNodes;
 
     /**
+    * Saves the state of ignoring tokens due to an exclusion match.
+    *
+    * @var bool
+    */
+    private $ignoreScope;
+
+    /**
     * Default constructor
     *
     */
@@ -191,12 +198,15 @@
         // Adjust scope
         $whiteSpace = ( isset( $matches[ 0 ] ) ) ? $matches[ 0 ] : "";
         if( null != $this->context->Scope && strlen( $whiteSpace ) > $this->context->Scope->WhitespaceDepth ) {
+          if( $this->ignoreScope ) return null;
           $this->scopes[] = $this->result;
           $this->result->WhitespaceDepth = strlen( $whiteSpace );
           if( $this->isDebug ) call_user_func( $this->debugLog, "Adjusting scope downwards" );
         }
         while( count( $this->scopes ) > 0 && strlen( $whiteSpace ) < $this->scopes[ count( $this->scopes ) - 1 ]->WhitespaceDepth ) {
           array_pop( $this->scopes );
+          // Stop ignoring
+          $this->ignoreScope = false;
           if( $this->isDebug ) call_user_func( $this->debugLog, "Adjusting scope upwards" );
         }
       }
@@ -218,7 +228,8 @@
       $tokens = explode( " ", $line );
       $token  = $tokens[ 0 ];
       if( in_array( $token, $this->excludeTokens ) ) {
-        return;
+        $this->ignoreScope = true;
+        return null;
       }
 
       if( $this->isDebug ) call_user_func( $this->debugLog, "Parsing line." );
