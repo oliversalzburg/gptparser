@@ -229,7 +229,7 @@
       // Split into tokens
       $tokens = explode( " ", $line );
       $token  = $tokens[ 0 ];
-      if( in_array( $token, $this->excludeTokens ) ) {
+      if( isset( $this->excludeTokens ) && in_array( $token, $this->excludeTokens ) ) {
         $this->ignoreScope = true;
         return null;
       }
